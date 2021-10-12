@@ -55,7 +55,7 @@ def connect(call, password):
 
 def main():
   config = configparser.ConfigParser()
-  config.read('aprs_wx.conf')
+  config.read('/etc/aprs_wx.conf')
   try:
     call = config.get('APRS', 'call')
     passcode = config.get('APRS', 'passcode')
