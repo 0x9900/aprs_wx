@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 #
+import configparser
 import logging
+import os
+import sys
 import time
 
 import aprslib
 
 from aprslib.util import latitude_to_ddm, longitude_to_ddm
-
-CALL = "W6BSD-Z"
-LAT = 37.4595
-LON = -122.2475
-
-W1_TEMP = "/sys/bus/w1/devices/28-3c01f095702b/w1_slave"
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
@@ -57,15 +54,29 @@ def connect(call, password):
   raise IOError('Connection failed')
 
 def main():
+  config = configparser.ConfigParser()
+  config.read('aprs_wx.conf')
+  try:
+    call = config.get('APRS', 'call')
+    passcode = config.get('APRS', 'passcode')
+    lat = config.getfloat('APRS',  'latitude')
+    lon = config.getfloat('APRS',  'longitude')
+    w1_temp = config.get('APRS', 'w1_temp')
+    sleep_time = config.getint('APRS', 'sleep', fallback=900)
+  except configparser.Error as err:
+    logging.error(err)
+    sys.exit(os.EX_CONFIG)
 
+  from IPython import embed
+  embed()
   while True:
     try:
-      ais = connect(CALL, aprslib.passcode(CALL))
-      temp = w1_read(W1_TEMP)
+      ais = connect(call, passcode)
+      temp = w1_read(w1_temp)
       logging.info('Current temperature: %f', temp)
       weather = make_aprs_wx(temperature=temp)
       ais.sendall("{}>APRS,TCPIP*:={}/{}_{}X".format(
-        CALL, latitude_to_ddm(LAT), longitude_to_ddm(LON), weather
+        call, latitude_to_ddm(lat), longitude_to_ddm(lon), weather
       ))
       ais.close()
     except IOError as err:
@@ -74,7 +85,7 @@ def main():
     except Exception as err:
       logging.error(err)
 
-    time.sleep(900)
+    time.sleep(sleep_time)
 
 if __name__ == "__main__":
   main()

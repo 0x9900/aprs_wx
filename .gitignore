@@ -6,7 +6,4 @@ wificonfig.py
 /pexec.egg-info/
 /build/
 /dist/
-scratch_pad.py
-html/_index.html
-screenlog.*
-update.py
+aprs_wx.conf
