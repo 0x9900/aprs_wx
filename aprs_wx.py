@@ -10,6 +10,8 @@ import aprslib
 
 from aprslib.util import latitude_to_ddm, longitude_to_ddm
 
+CONFIG_FILE = '/etc/aprs_wx.conf'
+
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 def make_aprs_wx(wind_dir=None, wind_speed=None, wind_gust=None, temperature=None,
@@ -54,8 +56,9 @@ def connect(call, password):
   raise IOError('Connection failed')
 
 def main():
+  logging.info('Read configuration file %s', CONFIG_FILE)
   config = configparser.ConfigParser()
-  config.read('/etc/aprs_wx.conf')
+  config.read(CONFIG_FILE)
   try:
     call = config.get('APRS', 'call')
     passcode = config.get('APRS', 'passcode')
