@@ -77,6 +77,8 @@ def main():
     logging.error(err)
     sys.exit(os.EX_CONFIG)
 
+  logging.info('Send weather data %s position', 'with' if position else 'without')
+
   while True:
     try:
       ais = connect(call, passcode)
@@ -84,12 +86,10 @@ def main():
       logging.info('Current temperature: %f', temp)
       weather = make_aprs_wx(temperature=temp, position=position)
       if position:
-        logging.info('Send weather with position')
         ais.sendall("{}>APRS,TCPIP*:={}/{}_{}X".format(
           call, latitude_to_ddm(lat), longitude_to_ddm(lon), weather
         ))
       else:
-        logging.info('Send weather without position')
         _date = datetime.utcnow().strftime('%m%d%H%M')
         ais.sendall("{}>APRS,TCPIP*:_{}{}".format(call, _date, weather))
 
