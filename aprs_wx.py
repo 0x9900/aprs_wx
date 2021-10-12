@@ -32,6 +32,7 @@ def make_aprs_wx(wind_dir=None, wind_speed=None, wind_gust=None, temperature=Non
     wx_fmt(pressure, 5)
   )
 
+
 def w1_read(device):
   with open(device) as fdw:
     for line in fdw:
@@ -54,6 +55,7 @@ def connect(call, password):
     else:
       return ais
   raise IOError('Connection failed')
+
 
 def main():
   logging.info('Read configuration file %s', CONFIG_FILE)
@@ -87,6 +89,7 @@ def main():
       logging.error(err)
 
     time.sleep(sleep_time)
+
 
 if __name__ == "__main__":
   main()

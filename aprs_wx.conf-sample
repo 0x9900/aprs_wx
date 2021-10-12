@@ -1,6 +1,6 @@
 [APRS]
 call: HAMRADIO_CALL_SIGN
-passcode: 8839
+passcode: 98765
 sleep: 900
 latitude: 38.4599
 longitude: -120.2405
