@@ -67,8 +67,6 @@ def main():
     logging.error(err)
     sys.exit(os.EX_CONFIG)
 
-  from IPython import embed
-  embed()
   while True:
     try:
       ais = connect(call, passcode)
