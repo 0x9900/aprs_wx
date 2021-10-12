@@ -29,7 +29,13 @@ sleep: 900
 latitude: 38.4599
 longitude: -120.2405
 w1_temp: /sys/bus/w1/devices/28-3c01f095702b/w1_slave
+position: no
 ```
+
+Set the option `position` to true or yes if you want to send your
+position. In that case, you need to specify `latitude` and `longitude`. If
+you choose not to send the device position, you can forget to set the
+latitude and longitude.
 
 Add your call sign, passcode. You can use google maps to find out your
 latitude and longitude. You also need to configure the full path for

@@ -6,6 +6,8 @@ import os
 import sys
 import time
 
+from datetime import datetime
+
 import aprslib
 
 from aprslib.util import latitude_to_ddm, longitude_to_ddm
@@ -16,21 +18,23 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 def make_aprs_wx(wind_dir=None, wind_speed=None, wind_gust=None, temperature=None,
                  rain_last_hr=None, rain_last_24_hrs=None, rain_since_midnight=None,
-                 humidity=None, pressure=None):
+                 humidity=None, pressure=None, position=False):
 
   wx_fmt = lambda n, l=3: '.' * l if n is None else "{:0{l}d}".format(int(n), l=l)
+  if position == True:
+    template = '{}/{}g{}t{}r{}p{}P{}h{}b{}'.format
+  else:
+    template = 'c{}s{}g{}t{}r{}p{}P{}h{}b{}'.format
 
-  return '%s/%sg%st%sr%sp%sP%sh%sb%s' % (
-    wx_fmt(wind_dir),
-    wx_fmt(wind_speed),
-    wx_fmt(wind_gust),
-    wx_fmt(temperature),
-    wx_fmt(rain_last_hr),
-    wx_fmt(rain_last_24_hrs),
-    wx_fmt(rain_since_midnight),
-    wx_fmt(humidity, 2),
-    wx_fmt(pressure, 5)
-  )
+  return template(wx_fmt(wind_dir),
+                  wx_fmt(wind_speed),
+                  wx_fmt(wind_gust),
+                  wx_fmt(temperature),
+                  wx_fmt(rain_last_hr),
+                  wx_fmt(rain_last_24_hrs),
+                  wx_fmt(rain_since_midnight),
+                  wx_fmt(humidity, 2),
+                  wx_fmt(pressure, 5))
 
 
 def w1_read(device):
@@ -64,10 +68,11 @@ def main():
   try:
     call = config.get('APRS', 'call')
     passcode = config.get('APRS', 'passcode')
-    lat = config.getfloat('APRS',  'latitude')
-    lon = config.getfloat('APRS',  'longitude')
+    lat = config.getfloat('APRS',  'latitude', fallback=0.0)
+    lon = config.getfloat('APRS',  'longitude', fallback=0.0)
     w1_temp = config.get('APRS', 'w1_temp')
     sleep_time = config.getint('APRS', 'sleep', fallback=900)
+    position = config.getboolean('APRS', 'position', fallback=False)
   except configparser.Error as err:
     logging.error(err)
     sys.exit(os.EX_CONFIG)
@@ -77,10 +82,17 @@ def main():
       ais = connect(call, passcode)
       temp = w1_read(w1_temp)
       logging.info('Current temperature: %f', temp)
-      weather = make_aprs_wx(temperature=temp)
-      ais.sendall("{}>APRS,TCPIP*:={}/{}_{}X".format(
-        call, latitude_to_ddm(lat), longitude_to_ddm(lon), weather
-      ))
+      weather = make_aprs_wx(temperature=temp, position=position)
+      if position:
+        logging.info('Send weather with position')
+        ais.sendall("{}>APRS,TCPIP*:={}/{}_{}X".format(
+          call, latitude_to_ddm(lat), longitude_to_ddm(lon), weather
+        ))
+      else:
+        logging.info('Send weather without position')
+        _date = datetime.utcnow().strftime('%m%d%H%M')
+        ais.sendall("{}>APRS,TCPIP*:_{}{}".format(call, _date, weather))
+
       ais.close()
     except IOError as err:
       logging.error(err)
