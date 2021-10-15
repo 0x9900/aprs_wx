@@ -38,14 +38,15 @@ def make_aprs_wx(wind_dir=None, wind_speed=None, wind_gust=None, temperature=Non
 
 
 def w1_read(device):
+  """Read the w1 device and return the temperature in Celsius and
+  Fahrenheit."""
   with open(device) as fdw:
     for line in fdw:
       if 't=' not in line:
         continue
-
       _, temp = line.split('=')
       temp = float(temp) / 1000.0
-  return ((temp * 1.8) + 32)
+  return temp, ((temp * 1.8) + 32)
 
 
 def connect(call, password):
@@ -68,8 +69,8 @@ def main():
   try:
     call = config.get('APRS', 'call')
     passcode = config.get('APRS', 'passcode')
-    lat = config.getfloat('APRS',  'latitude', fallback=0.0)
-    lon = config.getfloat('APRS',  'longitude', fallback=0.0)
+    lat = config.getfloat('APRS', 'latitude', fallback=0.0)
+    lon = config.getfloat('APRS', 'longitude', fallback=0.0)
     w1_temp = config.get('APRS', 'w1_temp')
     sleep_time = config.getint('APRS', 'sleep', fallback=900)
     position = config.getboolean('APRS', 'position', fallback=False)
@@ -82,9 +83,9 @@ def main():
   while True:
     try:
       ais = connect(call, passcode)
-      temp = w1_read(w1_temp)
-      logging.info('Current temperature: %f', temp)
-      weather = make_aprs_wx(temperature=temp, position=position)
+      ctemp, ftemp = w1_read(w1_temp)
+      logging.info('Current temperature: %fC %f(F)', ctemp, ftemp)
+      weather = make_aprs_wx(temperature=ftemp, position=position)
       if position:
         ais.sendall("{}>APRS,TCPIP*:={}/{}_{}X".format(
           call, latitude_to_ddm(lat), longitude_to_ddm(lon), weather

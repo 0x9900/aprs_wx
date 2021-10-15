@@ -1,7 +1,7 @@
 [Unit]
 Description=APRS Weather
 After=network.target
-StartLimitIntervalSec=500
+StartLimitIntervalSec=60
 StartLimitBurst=3
 
 [Service]
