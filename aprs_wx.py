@@ -84,7 +84,7 @@ def main():
     try:
       ais = connect(call, passcode)
       ctemp, ftemp = w1_read(w1_temp)
-      logging.info('Current temperature: %fC %f(F)', ctemp, ftemp)
+      logging.info('Current temperature: %.1f°C (%.1f°F)', ctemp, ftemp)
       weather = make_aprs_wx(temperature=ftemp, position=position)
       if position:
         ais.sendall("{}>APRS,TCPIP*:={}/{}_{}X".format(
